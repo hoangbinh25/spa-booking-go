@@ -1,0 +1,20 @@
+CREATE TABLE booking_items (
+    id                UUID            DEFAULT gen_random_uuid() PRIMARY KEY,
+    booking_id        UUID            NOT NULL,
+    branch_service_id UUID            NOT NULL,
+    technician_id     UUID            NOT NULL,
+    service_name      VARCHAR (150)   NOT NULL,
+    start_at          TIMESTAMPTZ     NOT NULL,
+    end_at            TIMESTAMPTZ     NOT NULL,
+    duration_minutes  INT             NOT NULL,
+    service_price     NUMERIC (14, 2) NOT NULL,
+    status            VARCHAR (30)    DEFAULT 'PENDING' NOT NULL,
+    created_at        TIMESTAMPTZ     DEFAULT NOW() NOT NULL,
+    updated_at        TIMESTAMPTZ     DEFAULT NOW() NOT NULL,
+    CONSTRAINT fk_booking_items_booking FOREIGN KEY (booking_id) REFERENCES bookings (id) ON DELETE CASCADE,
+    CONSTRAINT fk_booking_items_branch_service FOREIGN KEY (branch_service_id) REFERENCES branch_services (id),
+    CONSTRAINT fk_booking_items_technician FOREIGN KEY (technician_id) REFERENCES technicians (id),
+    CONSTRAINT chk_booking_items_time CHECK (start_at < end_at),
+    CONSTRAINT chk_booking_items_duration CHECK (duration_minutes > 0),
+    CONSTRAINT chk_booking_items_price CHECK (service_price >= 0)
+);
