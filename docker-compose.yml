@@ -1,0 +1,55 @@
+services:
+  postgres:
+    image: postgres:18
+    container_name: spa-postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: spa_booking
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - spa_pg_data:/var/lib/postgresql
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d spa_booking"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+
+    container_name: spa-api
+
+    restart: unless-stopped
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    ports:
+      - "8080:8080"
+
+    environment:
+      APP_ENV: development
+      APP_PORT: 8080
+
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: spa_booking
+      DB_USER: postgres
+      DB_PASSWORD: 123456
+      DB_SSLMODE: disable
+
+    volumes:
+      - .:/app
+
+volumes:
+  spa_pg_data:
