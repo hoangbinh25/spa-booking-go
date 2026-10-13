@@ -1,0 +1,95 @@
+basePath: /api/v1
+definitions:
+  branch.Branch:
+    properties:
+      address:
+        type: string
+      code:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+      timezone:
+        type: string
+    type: object
+  branch.DetailResponse:
+    properties:
+      data:
+        $ref: '#/definitions/branch.Branch'
+    type: object
+  branch.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  branch.ListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/branch.Branch'
+        type: array
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API for the Spa Booking System.
+  title: Spa Booking API
+  version: "1.0"
+paths:
+  /branches:
+    get:
+      description: Returns all active spa branches.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/branch.ListResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/branch.ErrorResponse'
+      summary: List active branches
+      tags:
+      - branches
+  /branches/{id}:
+    get:
+      description: Returns an active spa branch by its ID.
+      parameters:
+      - description: Branch UUID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/branch.DetailResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/branch.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/branch.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/branch.ErrorResponse'
+      summary: Get an active branch
+      tags:
+      - branches
+schemes:
+- http
+swagger: "2.0"

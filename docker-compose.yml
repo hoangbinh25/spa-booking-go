@@ -21,6 +21,39 @@ services:
       timeout: 5s
       retries: 10
 
+  migrate:
+    image: migrate/migrate:v4.18.3
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./migrations:/migrations:ro
+    command:
+      [
+        "-path=/migrations",
+        "-database=postgres://postgres:123456@postgres:5432/spa_booking?sslmode=disable",
+        "up",
+      ]
+    restart: "no"
+
+  seed:
+    image: postgres:18
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    volumes:
+      - ./seeds:/seeds:ro
+    command:
+      [
+        "psql",
+        "postgres://postgres:123456@postgres:5432/spa_booking?sslmode=disable",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-f",
+        "/seeds/development.sql",
+      ]
+    restart: "no"
+
   api:
     build:
       context: .
@@ -30,10 +63,6 @@ services:
 
     restart: unless-stopped
 
-    depends_on:
-      postgres:
-        condition: service_healthy
-
     ports:
       - "8080:8080"
 
@@ -41,8 +70,10 @@ services:
       APP_ENV: development
       APP_PORT: 8080
 
-      DB_HOST: postgres
-      DB_PORT: 5432
+      # The API uses the PostgreSQL instance managed through pgAdmin on the Windows host.
+      # `localhost` inside this container would point back to the container itself.
+      DB_HOST: host.docker.internal
+      DB_PORT: 5434
       DB_NAME: spa_booking
       DB_USER: postgres
       DB_PASSWORD: 123456

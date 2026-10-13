@@ -1,3 +1,10 @@
+// @title Spa Booking API
+// @version 1.0
+// @description API for the Spa Booking System.
+// @host localhost:8080
+// @BasePath /api/v1
+// @schemes http
+
 package main
 
 import (
@@ -6,10 +13,13 @@ import (
 	"log"
 	"log/slog"
 
-	"github.com/gin-gonic/gin"
+	"github.com/hoangbinh25/spa-booking/internal/branch"
 	"github.com/hoangbinh25/spa-booking/internal/config"
 	"github.com/hoangbinh25/spa-booking/internal/database"
 	"github.com/hoangbinh25/spa-booking/internal/health"
+	"github.com/hoangbinh25/spa-booking/internal/httpapi"
+
+	_ "github.com/hoangbinh25/spa-booking/docs"
 )
 
 func main() {
@@ -35,14 +45,14 @@ func main() {
 
 	slog.Info("database connected")
 
-	router := gin.New()
-	router.Use(
-		gin.Logger(),
-		gin.Recovery(),
-	)
-
 	healthHandler := health.NewHandler(db)
-	router.GET("/health", healthHandler.Check)
+	branchRepository := branch.NewRepository(db)
+	branchHandler := branch.NewHandler(branchRepository, branchRepository)
+
+	router := httpapi.NewRouter(httpapi.Handlers{
+		Health: healthHandler,
+		Branch: branchHandler,
+	})
 
 	address := fmt.Sprintf(":%d", cfg.AppPort)
 	if err := router.Run(address); err != nil {
